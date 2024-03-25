@@ -1,0 +1,182 @@
+<!-- ******************************************************************************** 
+  * 잘작동함. 단, 아래 준비가 필요함.
+  - 가나슈를 작동해야함.
+  - 가나슈 작동 후 계정 리스트에서 돈보내는 지갑id 와 돈받는 지갑id 잘 복사해서 아래 대입해야 함.
+  - 돈보내는 지갑id는 개인키도 잘 복사해서 아래 대입해야 함.
+  - 컨트랙트 migrate 와 ??? todo: 여기 기록 정리할 것... ㅇㅇ가 필요하고
+  - 위 컨트랙트 address 값도 잘 복사해서 아래 특정 변수에 대입해줘야 함.
+  - 컨트랙트의 abi값 확인해서(ㅇㅇ.json) contractABI 변수에 대입해줘야 함.
+  ******************************************************************************** -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fetch Cat Information</title>
+  <!-- Web3.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.5.3/dist/web3.min.js"></script>
+  <script>
+
+    // Ethereum 네트워크에 연결
+    const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545"); // Web3.givenProvider를 사용하여 현재 사용중인 프로바이더를 가져옵니다.
+
+    //// 송금자의 계정과 계정 비공개 키 변수에 세팅
+    //송금자 계정(공개주소)
+    // const senderAddress = '0xDcD70862ABd875cdfa7A515c384caf2D26eff92E'; //가나슈 서버 돌릴때 마다 달라지니 그때 그때 바꿔 넣어야 됨.
+    const senderAddress = '0x8323397E85bD44bF73699A1C6de262aC2208dA75'; //가나슈 서버 돌릴때 마다 달라지니 그때 그때 바꿔 넣어야 됨.
+    //송금자 보안키
+    // const privateKey = '0x24d609829a77f631cb358d7de0ae6a2aee59faeed522f313ab6a3e07547c6185';  //가나슈 서버 돌릴때 마다 달라지니 그때 그때 바꿔 넣어야 됨.
+    const privateKey = '0xc7d42ece8a8e8e6ebad59354ff1417b35117a82ca463c80ed80d3aefe6cc96c5';  //가나슈 서버 돌릴때 마다 달라지니 그때 그때 바꿔 넣어야 됨.
+
+
+    // 스마트 컨트랙트 주소와 ABI (Application Binary Interface). 이것도 할때마다(수정할때 마다?) 바꿔 넣어야됨.. 
+    // const contractAddress = '0xbf3846287E4a0068a07c6f3D36754203C8A3a056';
+    const contractAddress = '0xA4e71E91E8AB2d8042584Bb4454dFE6e45b0E762';
+    // 아래는 코드 안바꾼 상태면 동일. 아니면 다시 넣어야되고. ABI.
+    const contractABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "catName",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "value",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_v",
+          "type": "string"
+        }
+      ],
+      "name": "setValue",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "x",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "getCat",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_receiver",
+          "type": "address"
+        }
+      ],
+      "name": "transferEther",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function",
+      "payable": true
+    }
+    ];
+
+    // 스마트 컨트랙트 인스턴스 생성
+    const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+
+    // 고양이 정보를 가져오는 함수
+    async function getCatInfo() {
+      //송신자의 계정 얻기
+      const senderAccount = web3.eth.accounts.privateKeyToAccount(privateKey);
+
+      // 수신자 주소, 이더량을 지정하여 트랜잭션을 생성합니다.
+      const txObject = {
+          from: senderAddress,
+          // to: '0x29C04d2DD3E1115a63dB1B35f577b33DBbD5Da55', //받는 사람 계정(비공개 말고 공개 일반 계정값)
+          to: '0x9E97E760D6C6641bd7C37eAA18EcAD05E5e43643', //받는 사람 계정(비공개 말고 공개 일반 계정값)
+          value: web3.utils.toWei('1', 'ether'), // *주의* 이더금액도 문자열로 넘겨야됨. 이더량을 wei 단위로 변환합니다.
+          gas: 21000, // 기본 가스 한도
+      };
+
+      try {
+        // 트랜잭션을 서명하고 전송합니다.
+        const signedTx = await senderAccount.signTransaction(txObject);
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        console.log('Transaction hash:', receipt.transactionHash);
+
+        //송금자의 잔액 조회하기 (잘 됨)
+        const balance = await web3.eth.getBalance(senderAddress);
+        console.log("계정 잔액:", web3.utils.fromWei(balance, "ether"), "ETH");
+
+      } catch (error) {
+        console.error('Transaction failed:', error);
+      }        
+
+      // // 스마트 컨트랙트의 getCat 함수 호출
+      // const catInfo = await contractInstance.methods.getCat().call();
+      // // document.getElementById('catName').innerText = '고양이 이름: ' + catInfo[0];
+      // document.getElementById('catName').innerText = '고양이 이름: ' + catInfo;
+    }
+
+    // 페이지 로드 시 고양이 정보 가져오기
+    window.onload = function () {
+      getCatInfo();
+    };
+  </script>
+</head>
+
+<body>
+  <h1>이벤트 당첨자에게 이더 상금 송금 (새로고칠때 마다 송금됨. todo: ui개선) </h1>
+  <div id="catName"></div><!-- (기능 주석쳐서 이건 현재 표시 안됨) -->
+</body>
+
+</html>
