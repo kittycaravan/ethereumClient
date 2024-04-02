@@ -138,7 +138,8 @@
       // 수신자 주소, 이더량을 지정하여 트랜잭션을 생성합니다.
       const txObject = {
           from: senderAddress,
-          to: '0xfF05B7665299E5EcBaF88E2C6274A17555F5f1AC', // [수정할곳 5] 받는 사람 계정(비공개 말고 공개 일반 계정값)
+          // to: '0xfF05B7665299E5EcBaF88E2C6274A17555F5f1AC', // [수정할곳 5] 받는 사람 계정(비공개 말고 공개 일반 계정값)
+          to: receiverId.value,
           value: web3.utils.toWei('1', 'ether'), // *주의* 이더금액도 문자열로 넘겨야됨. 이더량을 wei 단위로 변환합니다.
           gas: 21000, // 기본 가스 한도
       };
@@ -164,8 +165,11 @@
     }
 
     // 페이지 로드 시 고양이 정보 가져오기
+    let receiverId;
     window.onload = function () {
+      receiverId = document.getElementById("receiver_id");
       // getCatInfo();
+      
     };
 
     function sendEventEther(){
@@ -177,6 +181,7 @@
 <body>
   <h1>이벤트 당첨자에게 이더 상금 송금</h1>
   <div id="catName"></div><!-- (기능 주석쳐서 이건 현재 표시 안됨) -->
+  <input id="receiver_id">
   <button onclick="sendEventEther()">이벤트 당첨자에게 이더 상금 송금</button>
 </body>
 
